@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Scuffed chat app</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-ws@2.0.2"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body hx-ext="ws" ws-connect="/ws">
+    <h1>Scuffed chat app</h1>
+
+    <pre>tech stack: go / mqtt / ws / htmx</pre>
+
+    <div id="echo"></div>
+
+    <form ws-send x-data="formHandle" @submit="submit">
+      <input name="user" placeholder="Username" />
+      <input name="content" placeholder="Type message..." x-model="text" />
+      <button>Send</button>
+    </form>
+    <div id="validation_errors"></div>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("formHandle", () => ({
+          text: "",
+          submit() {
+            this.$nextTick(() => (this.text = ""));
+          },
+        }));
+      });
+    </script>
+  </body>
+</html>
