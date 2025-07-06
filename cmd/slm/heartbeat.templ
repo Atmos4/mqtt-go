@@ -1,0 +1,27 @@
+package main
+
+templ heartbeatList(devices map[string]Device) {
+	<ul id="heartbeat-list">
+		for _,device := range devices {
+			<li>
+				<strong>{ device.Type }/{ device.ID }</strong>
+			</li>
+		}
+	</ul>
+}
+
+templ Home() {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<title>SLM</title>
+			<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+			<script src="https://unpkg.com/htmx-ext-ws@2.0.2"></script>
+		</head>
+		<body hx-ext="ws" ws-connect="/ws">
+			<h1>Connected Devices</h1>
+			<ul id="heartbeat-list"></ul>
+		</body>
+	</html>
+}

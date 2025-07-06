@@ -1,28 +1,21 @@
 package hub
 
 import (
-	"html/template"
 	"log"
+	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
-type Message struct {
-	User    string `json:"user" validate:"required"`
-	Content string `json:"content" validate:"required"`
-}
-
 type Hub struct {
 	sync.Mutex
 	Clients map[*websocket.Conn]bool
-	Tpl     *template.Template
 }
 
-func New(tpl *template.Template) *Hub {
+func New() *Hub {
 	return &Hub{
 		Clients: make(map[*websocket.Conn]bool),
-		Tpl:     tpl,
 	}
 }
 
@@ -46,6 +39,33 @@ func (h *Hub) Broadcast(b []byte) {
 			log.Println("WebSocket write error:", err)
 			conn.Close()
 			delete(h.Clients, conn)
+		}
+	}
+}
+
+func (h *Hub) OnConnect() http.HandlerFunc {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println("Upgrade error:", err)
+			return
+		}
+		h.Add(conn)
+		defer func() {
+			h.Remove(conn)
+			conn.Close()
+		}()
+
+		for {
+			_, data, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("WebSocket read error:", err)
+				break
+			}
+			log.Println(data)
 		}
 	}
 }
